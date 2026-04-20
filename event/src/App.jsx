@@ -2,11 +2,13 @@ import React from 'react'
 
 
 const App = () => {
+  let a = "Ayan"
   function handler(){
-  a = "Ahmed"
-  alert("changed")
+    console.log(a)
+    a = "Ahmed"
+    alert("changed")
+    console.log(a)
 }
-let a = "Ayan"
 const haha = (e)=>{
   console.log(e.target.value)
 }
