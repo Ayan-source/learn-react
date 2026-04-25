@@ -1,0 +1,26 @@
+===================================Modern Style (Destructuring)
+function Card({ name }) {
+  return <h1>{name}</h1>;
+}
+📦 Multiple Props
+function Card({ name, age }) {
+  return (
+    <h1>
+      {name} - {age}
+    </h1>
+  );
+}
+🎯 Props with Tailwind
+function Button({ text }) {
+  return (
+    <button className="bg-blue-500 text-white px-4 py-2 rounded">
+      {text}
+    </button>
+  );
+}
+
+Use:
+
+<Button text="Login" />
+<Button text="Signup" />
+
