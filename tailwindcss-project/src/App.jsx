@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { createElement, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertTriangle,
   BarChart3,
@@ -91,6 +91,8 @@ const App = () => {
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '', confirm: '', terms: false, remember: true })
   const [transactionForm, setTransactionForm] = useState({ amount: '', category: 'Food', title: '', date: '2026-04-27', notes: '', recurring: false })
 
+  const toastTimerRef = useRef(null)
+
   const financials = useMemo(() => {
     const income = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
     const expense = transactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
@@ -99,9 +101,18 @@ const App = () => {
   }, [transactions])
 
   const showToast = (payload) => {
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current)
+    }
     setToast(payload)
-    window.setTimeout(() => setToast(null), 2500)
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 2500)
   }
+
+  useEffect(() => () => {
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current)
+    }
+  }, [])
 
   const handleAuthSubmit = (event) => {
     event.preventDefault()
@@ -261,7 +272,7 @@ const App = () => {
       ? transactions.filter((item) => item.type === 'expense')
       : transactions
 
-  const TableRows = scopedTransactions.slice(0, 7).map((item) => (
+  const tableRows = scopedTransactions.slice(0, 7).map((item) => (
     <tr key={item.id} className="border-t border-white/8 text-sm text-slate-200">
       <td className="px-3 py-2">{item.title}</td>
       <td className="px-3 py-2">{item.category}</td>
@@ -271,7 +282,7 @@ const App = () => {
       <td className="px-3 py-2">{item.date}</td>
       <td className="px-3 py-2">{item.recurring ? 'Recurring' : 'One-time'}</td>
       <td className="px-3 py-2">
-        <button onClick={() => setDeleteTarget(item.id)} className="rounded-lg border border-rose-400/30 p-1 text-rose-300 hover:bg-rose-400/10" aria-label="Delete transaction">
+        <button onClick={() => setDeleteTarget(item.id)} className="rounded-lg border border-rose-400/30 p-1 text-rose-300 hover:bg-rose-400/10 focus:ring-2 focus:ring-rose-400 focus-visible:outline-none" aria-label={`Delete ${item.title} transaction`}>
           <Trash2 size={14} />
         </button>
       </td>
@@ -290,13 +301,13 @@ const App = () => {
             </div>
           </div>
           <nav className="space-y-1">
-                {navItems.map(({ id, label }) => (
+            {navItems.map(({ id, label, icon }) => (
               <button
                 key={id}
                 onClick={() => setActiveScreen(id)}
                 className={classNames('flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm transition', activeScreen === id ? 'bg-cyan-300/12 text-cyan-200' : 'text-slate-300 hover:bg-white/5')}
               >
-                <Icon size={16} />
+                {createElement(icon, { size: 16 })}
                 {label}
               </button>
             ))}
@@ -382,7 +393,7 @@ const App = () => {
                   <p className="mb-3 flex items-center gap-1 text-xs text-slate-300"><BarChart3 size={14} /> Income vs Expense</p>
                   <div className="flex h-40 items-end gap-2">
                     {[40, 65, 48, 75, 62, 80].map((height, index) => (
-                      <div key={height + index} className="flex-1 rounded-t-md bg-gradient-to-t from-cyan-500/40 to-cyan-300/80" style={{ height: `${height}%` }} />
+                      <div key={index} className="flex-1 rounded-t-md bg-gradient-to-t from-cyan-500/40 to-cyan-300/80" style={{ height: `${height}%` }} />
                     ))}
                   </div>
                 </div>
@@ -422,7 +433,8 @@ const App = () => {
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-[700px] w-full">
+                <table className="min-w-[700px]">
+                  <caption className="sr-only">Transaction history</caption>
                   <thead className="text-left text-xs uppercase tracking-wide text-slate-400">
                     <tr>
                       <th className="px-3 py-2">Title</th>
@@ -433,7 +445,7 @@ const App = () => {
                       <th className="px-3 py-2">Action</th>
                     </tr>
                   </thead>
-                  <tbody>{TableRows}</tbody>
+                  <tbody>{tableRows}</tbody>
                 </table>
               </div>
             </section>
